@@ -8,9 +8,12 @@
 
 import UIKit
 
-class TodoListViewController: UITableViewController {
+class TodoListViewController: UITableViewController, UISearchBarDelegate {
 
     var itemArray = [Item]()
+    var filterArray = [Item]()
+    
+    var isSearchMode = false
     
     let dataFilPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
         .first?.appendingPathComponent("Items.plist")
@@ -19,7 +22,8 @@ class TodoListViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-    
+
+        
         print(dataFilPath!)
 
         loadItems()
@@ -30,28 +34,39 @@ class TodoListViewController: UITableViewController {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "TodoItemCell", for: indexPath)
         
-        cell.textLabel?.text = itemArray[indexPath.row].title
-        
-        if itemArray[indexPath.row].done == true {
-            cell.accessoryType = .checkmark
-        }else{
-            cell.accessoryType = .none
+        if isSearchMode == true {
+            cell.textLabel?.text = filterArray[indexPath.row].title
+            
+            if filterArray[indexPath.row].done == true {
+                cell.accessoryType = .checkmark
+            }else{
+                cell.accessoryType = .none
+            }
         }
-        
-        
+        else {
+            cell.textLabel?.text = itemArray[indexPath.row].title
+            
+            if itemArray[indexPath.row].done == true {
+                cell.accessoryType = .checkmark
+            }else{
+                cell.accessoryType = .none
+            }
+        }
         return cell
-        
-        
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        
+        if isSearchMode{
+            return filterArray.count
+        }
+        
         return itemArray.count
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         
-    
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
         saveitems()
@@ -113,13 +128,34 @@ class TodoListViewController: UITableViewController {
             if let data = try? Data(contentsOf: dataFilPath!) {
                 let decoder = PropertyListDecoder()
                 do {
-                itemArray = try decoder.decode([Item].self, from: data)
+                    itemArray = try decoder.decode([Item].self, from: data)
                 }
                 catch{
                     print("error in decode \(error)")
                 }
             }
+    }
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        
+        if searchBar.text!.count == 0 {
+            isSearchMode = false
         }
+        else{
+            let lower = searchBar.text!.lowercased()
+            isSearchMode = true
+            filterArray = itemArray.filter({$0.title.range(of: lower) != nil})
+        }
+        
+        tableView.reloadData()
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text!.count == 0 {
+            isSearchMode = false
+            tableView.reloadData()
+        }
+    }
 
 }
 
