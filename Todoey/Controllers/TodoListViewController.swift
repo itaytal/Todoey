@@ -8,8 +8,8 @@
 
 import UIKit
 
-class TodoListViewController: UITableViewController, UISearchBarDelegate {
-
+class TodoListViewController: SwipeTableViewController, UISearchBarDelegate {
+    
     var itemArray = [Item]()
     var filterArray = [Item]()
     
@@ -24,7 +24,9 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate {
         // Do any additional setup after loading the view, typically from a nib.
 
         
-        print(dataFilPath!)
+        //print(dataFilPath!)
+        
+        tableView.rowHeight = 80.0
 
         loadItems()
     
@@ -32,7 +34,7 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate {
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "TodoItemCell", for: indexPath)
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
         if isSearchMode == true {
             cell.textLabel?.text = filterArray[indexPath.row].title
@@ -52,6 +54,7 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate {
                 cell.accessoryType = .none
             }
         }
+        
         return cell
     }
     
@@ -66,18 +69,18 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
-        
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
-        
         saveitems()
 
-        
         tableView.reloadData()
-        
         tableView.deselectRow(at: indexPath, animated: true)
-        
     }
     
+    //delete data
+    override func UpdateModel(at indexPath: IndexPath) {
+        itemArray.remove(at: indexPath.row)
+        saveitems()
+    }
     
     //MARK  - add new items
     @IBAction func addButtonPress(_ sender: Any) {
@@ -89,7 +92,6 @@ class TodoListViewController: UITableViewController, UISearchBarDelegate {
         let action  = UIAlertAction(title: "Add Item", style: .default) { (action) in
             //what will happen once the user clicks
             
-  
             
             let newItem = Item()
             newItem.title = textField.text!
